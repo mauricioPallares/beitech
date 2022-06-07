@@ -22,3 +22,27 @@ Para la creacion del api se uso la extesion flask_restful y su documentacion fue
 
   - [Doc Postman](https://documenter.getpostman.com/view/12900848/Uz5JHatw)
 
+
+## Start
+
+Luego de descargar el repositorio, se configura en al archivo /app/config.py la base de datos 
+
+```
+DB = {
+    'host': "localhost",
+    'user': "root",
+    'passwd': "",
+    'database': "ordenes",
+}
+```
+
+para ejecutar la aplicacion se debe definir la variable de entorno FLASK_APP
+
+```sh
+export FLASK_APP=app
+$ flask run
+```
+
+
+Al momento de ejecutarla por primera vez se generan las tablas en la base de datos.
+En el archivo database.sql estan los datos de ejemplo para las tablas customer, product y customer_has_product.
