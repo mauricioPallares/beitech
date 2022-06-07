@@ -16,7 +16,7 @@ El proyecto fue desarrollado usando Flask, Flask_SQLAlchemy, MySQL.
 
 -  Elimine el campo product_description de la tabla order_detail
 
-## Crearcion del servicio web REST
+## Creacion del servicio web REST
 
 Para la creacion del api se uso la extesion flask_restful y su documentacion fue hecha con Postman y se puede visualizar en el siguiente link.
 

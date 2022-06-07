@@ -4,6 +4,7 @@ from datetime import datetime
 
 from app.schemes import ListOrdersRequestShema, CreateOrderShema
 from app.models import Customer, Order, Product, add_order_detail, get_order_detail
+from app.validation import Validate
 
 order_bp = Blueprint("Orders", __name__, url_prefix="/api")
 order_api = Api(order_bp)
@@ -13,10 +14,8 @@ class Orders(Resource):
     def get(self):
         result = []
         schemaRequest = ListOrdersRequestShema()
-        customers_list_id = Customer.list_id_customer()
 
-        error = schemaRequest.validate(request.args)
-        if error:
+        if schemaRequest.validate(request.args):
             return abort(422, **error)
 
         parseDate = lambda date: datetime.strptime(date, "%d/%m/%Y").date()
@@ -25,23 +24,23 @@ class Orders(Resource):
         start_date = parseDate(schemaRequest.dump(request.args).get("start_date"))
         end_date = parseDate(schemaRequest.dump(request.args).get("end_date"))
 
-        if customer not in customers_list_id:
+        if not Validate.customers(customer):
             error = {"Error": "Customer Id Invalido"}
             return abort(422, **error)
 
-        orders = Order().get_orders(
+        orders = Order.get_orders(
             customer_id=customer, start_date=start_date, end_date=end_date
         )
 
         if not orders:
             return {"mensaje": "No hay ordenes para ese Cliente en ese rango de fechas"}
 
-        for order in orders:
+        for i, order in enumerate(orders):
             order_detail = [detail for detail in get_order_detail(order.order_id)]
             order_product = []
 
             for detail in order_detail:
-                product = Product().get_by_id(detail[1])
+                product = Product.get_by_id(detail[1])
                 order_product.append((product, detail[3]))
 
             order_data = {
@@ -52,53 +51,40 @@ class Orders(Resource):
                 "order_product": [{"name": product.name, "unit": detail[3]}],
             }
 
-            result.append(order_data)
+            result.append({i: order_data})
 
-        return result
+        return {"orders": result}
 
     def post(self):
         order_shema = CreateOrderShema()
 
-        # validacion de los esquemas
-        error = order_shema.validate(request.json)
-        if error:
+        if order_shema.validate(request.json):
             abort(422, **error)
 
         data = order_shema.dump(request.get_json())
 
-        # valida que el customer_id sea valido
-        customers_list_id = Customer.list_id_customer()
+        # Validaciones
 
-        if data.get("customer") not in customers_list_id:
+        if not Validate.customers(data.get("customer")):
             error = {"Error": "Customer Id Invalido"}
             return abort(422, **error)
 
-        # valida que no exceda los 5 productos por cliente
-        if data.get("count_products") < 1 or data.get("count_products") > 5:
+        if Validate.quantity_products(data.get("count_products")):
             error = {"Error": "Cantidad de productos no permitida"}
             return abort(422, **error)
 
-        # valida los productos validos para un cliente
-        products_customer = Customer.get_product_from_user(data.get("customer"))
-        products_id = set(
-            [detail["product_id"] for detail in data.get("order_details")]
+        if not Validate.products_available_to_customer(
+            data.get("customer"), *data.get("order_details")
+        ):
+            error = {"Error": "Productos no permitidos para el customer"}
+            return abort(422, **error)
+
+        order = Order(
+            customer_id=data.get("customer"),
+            address_delivery=data.get("address_delivery"),
         )
 
-        for product_id in products_id:
-            if product_id not in products_customer:
-                error = {"Error": "Productos no permitidos para el customer"}
-                return abort(422, **error)
-
-        totals = [
-            (Product().get_by_id(detail["product_id"]).price * detail["quantity"])
-            for detail in data.get("order_details")
-        ]
-
-        order = Order()
-
-        order.customer_id = data.get("customer")
-        order.address_delivery = data.get("address_delivery")
-        order.total = sum(totals)
+        order.get_total(*data.get("order_details"))
 
         order.save()
 
@@ -120,21 +106,20 @@ class Users(Resource):
 
         result = []
 
-        for customer in customers:
+        for i, customer in enumerate(customers):
 
             c = {
-                "customer_name": customer.name,
                 "customer_id": customer.customer_id,
+                "customer_name": customer.name,
                 "products_available": [
-                    {"product_id": p.product_id} for p in customer.products
+                    {"product_id": p.product_id, "name": p.name}
+                    for p in customer.products
                 ],
             }
 
-            print(customer.products[0].product_id)
+            result.append({i: c})
 
-            result.append(c)
-
-        return result
+        return {"customers": result}
 
 
 order_api.add_resource(Orders, "/orders")

@@ -27,6 +27,10 @@ class Customer(db.Model,BaseModel):
     products = db.relationship("Product", secondary=customer_products, backref ="_customer")
     orders = db.relationship('Order', backref='customer', lazy=True)
 
+    def __init__(self,name, email):
+        self.name = name
+        self.email = email
+
     @staticmethod
     def list_id_customer():
         records = db.session.query(Customer.customer_id).all()
@@ -47,6 +51,11 @@ class Product(db.Model,BaseModel):
     name = db.Column(db.String(191))
     description = db.Column(db.String(191))
     price = db.Column(db.Float)
+
+    def __init__(self,name, description, price):
+        self.name = name
+        self.description = description
+        self.price = price
         
     customer = db.relationship('Customer', secondary=customer_products, backref ="_product")
     orders = db.relationship('Order', secondary=order_detail, backref ="_order")
@@ -58,10 +67,21 @@ class Order(db.Model,BaseModel):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     address_delivery = db.Column(db.String(200))
     total = db.Column(db.Float)
-
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.customer_id'))
-    
+
+
     order_details = db.relationship("Product", secondary=order_detail, backref="_order")
+
+    def __init__(self,customer_id, address_delivery):
+        self.customer_id = customer_id
+        self.adress_delivery = address_delivery
+        
+    
+    def get_total(self, *details):
+        self.total =sum([
+            (Product.get_by_id(detail["product_id"]).price * detail["quantity"])
+            for detail in details
+        ])
 
     @staticmethod
     def get_orders(customer_id, start_date, end_date):
