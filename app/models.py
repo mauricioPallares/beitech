@@ -43,7 +43,6 @@ class Customer(db.Model,BaseModel):
 
         return [product.product_id for product in user.products]
         
-
 class Product(db.Model,BaseModel):
     __tablename__ = 'product'
     
@@ -92,18 +91,19 @@ class Order(db.Model,BaseModel):
             .all()
         
     
+    @staticmethod
+    def add_order_detail(order_id, **order_details):
+        
+        statements = insert(order_detail).values(
+            order_id= order_id,
+            quantity= order_details['quantity'],
+            product_id = order_details['product_id']
+        )
 
-def add_order_detail(order_id, **order_details):
-    
-    statements = insert(order_detail).values(
-        order_id= order_id,
-        quantity= order_details['quantity'],
-        product_id = order_details['product_id']
-    )
+        db.session.execute(statements)
+        db.session.commit()
 
-    db.session.execute(statements)
-    db.session.commit()
-
-def get_order_detail(order_id):
-    return db.session.query(order_detail)\
-        .filter_by(order_id=order_id).all()
+    @staticmethod
+    def get_order_detail(order_id):
+        return db.session.query(order_detail)\
+            .filter_by(order_id=order_id).all()

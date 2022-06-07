@@ -6,7 +6,6 @@ ma = Marshmallow()
 
 class ListOrdersRequestShema(Schema):
 
-
     customer = fields.Integer(
         required=True,
         error_messages={
@@ -44,7 +43,6 @@ class CustomerSchema(ma.SQLAlchemyAutoSchema):
 
     class Meta:
         model = Customer
-
 
 class ProductSchema(ma.SQLAlchemyAutoSchema):
     orders = fields.Nested('Order', many= True)

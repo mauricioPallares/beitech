@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from datetime import datetime
 
 from app.schemes import ListOrdersRequestShema, CreateOrderShema
-from app.models import Customer, Order, Product, add_order_detail, get_order_detail
+from app.models import Customer, Order, Product
 from app.validation import Validate
 
 order_bp = Blueprint("Orders", __name__, url_prefix="/api")
@@ -36,7 +36,7 @@ class Orders(Resource):
             return {"mensaje": "No hay ordenes para ese Cliente en ese rango de fechas"}
 
         for i, order in enumerate(orders):
-            order_detail = [detail for detail in get_order_detail(order.order_id)]
+            order_detail = [detail for detail in Order.get_order_detail(order.order_id)]
             order_product = []
 
             for detail in order_detail:
@@ -89,7 +89,7 @@ class Orders(Resource):
         order.save()
 
         [
-            add_order_detail(order.order_id, **order_detail)
+            order.add_order_detail(order.order_id, **order_detail)
             for order_detail in data.get("order_details")
         ]
 

@@ -28,32 +28,6 @@ def create_app():
     @app.errorhandler(404)
     def error404(error):
         return error
-        
-#     products = [
-#     Product('mesa', 'mesa de madera', 12.5),
-#     Product('silla', 'silla de madera', 9.58),
-#     Product('mesedora', 'mesedora metalica', 19.8),
-#     Product('cama ', 'cama detalica', 50.2),
-#     Product('mesa de noche', 'mesa de noche en madera', 25.6),
-#     Product('portatil', 'portatil hp', 500.5),
-#     Product( 'table', 'table samsung', 200.9),
-#     Product('celular', 'celular huawei', 580.8),
-#     Product('escritorio', 'escritorio en madera y metal', 150.7)
-# ]
-#     customers = [
-#     Customer('mauricio', 'mauricio@gmail.com'),
-#     Customer('jose', 'jose@gmail.com'),
-#     Customer('marcelo', 'marcelo@gmail.com'),
-#     Customer('carlos', 'carlos@gmail.com'),
-#     Customer('esteban', 'esteban@gmail.com'),
-#     Customer('johan', 'johan@gmail.com'),
-#     Customer('carolina', 'carolina@gmail.com'),
-#     Customer('carmen', 'carmen@gmail.com')
-#     ]
-    
-#     [p.save() for p in products]
-#     [c.save() for c in customers]
-
 
     return app
 
